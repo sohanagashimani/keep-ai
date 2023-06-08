@@ -1,34 +1,47 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-## Getting Started
+# Google Keep Clone
+This project is a clone of Google Keep, a note-taking application developed by Google. The aim of this project is to replicate the core features and functionalities of Google Keep, allowing users manage their notes.
 
-First, run the development server:
+![image](https://github.com/sohanagashimani/google-keep-clone/assets/73119181/758db438-9e5f-4e99-b35f-e19f67146fb5)
+
+
+## Features
+
+- Create Notes: Users can create new notes with titles and content, just like in Google Keep.
+-  Users can edit the content and title of existing notes or delete them as needed.
+- Users can mark notes as completed
+- Users can search for specific notes using keywords or filters to quickly find the desired information.
+- The application is responsive
+## Tech Stack
+
+- Next
+- TailwindCSS
+- Supabase
+
+
+## Run Locally
+
+Clone the project
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+git clone https://github.com/sohanagashimani/google-keep-clone.git
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Go to the project directory
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+```bash
+  cd google-keep-clone
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+Install dependencies
 
-## Learn More
+```bash
+  npm install
+```
 
-To learn more about Next.js, take a look at the following resources:
+Start the server
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+  npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
