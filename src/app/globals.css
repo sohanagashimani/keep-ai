@@ -18,10 +18,100 @@
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background: #262626;
+}
+
+::-webkit-scrollbar {
+  height: 16px;
+  overflow: visible;
+  width: 16px;
+}
+::-webkit-scrollbar-button {
+  height: 0;
+  width: 0;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.6);
+  -webkit-box-shadow: inset 1px 1px 1px rgba(0, 0, 0, 0.25);
+  box-shadow: inset 1px 1px 1px rgba(0, 0, 0, 0.25);
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  background-clip: padding-box;
+  border: solid transparent;
+  border-width: 1px 1px 1px 6px;
+  min-height: 28px;
+  padding: 100px 0 0;
+  -webkit-box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.07);
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.07);
+}
+::-webkit-scrollbar-track:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  -webkit-box-shadow: inset 1px 0 0 rgba(0, 0, 0, 0.1);
+  box-shadow: inset 1px 0 0 rgba(0, 0, 0, 0.1);
+}
+::-webkit-scrollbar-track {
+  background-clip: padding-box;
+  border: solid transparent;
+  border-width: 0 0 0 4px;
+}
+
+.my-masonry-grid {
+  display: -webkit-box; /* Not needed if autoprefixing */
+  display: -ms-flexbox; /* Not needed if autoprefixing */
+  display: flex;
+  width: 100%;
+  gap: 12px;
+}
+.my-masonry-grid_column {
+  background-clip: padding-box;
+  transition: "all 0.3s ease-in-out";
+}
+
+.ant-modal .ant-modal-content {
+  background-color: #262626;
+  border: 1px solid #5f6368;
+  padding: 20px 24px 8px;
+}
+.ant-modal .ant-modal-footer .ant-btn + .ant-btn:not(.ant-dropdown-trigger) {
+  margin-left: 0px;
+}
+.ant-btn-text:not(:disabled):hover {
+  color: #e8eaed;
+}
+.ant-dropdown .ant-dropdown-menu {
+  background-color: #262626;
+  border: none;
+  padding: 5px;
+}
+.ant-checkbox .ant-checkbox-inner {
+  background-color: transparent;
+}
+.ant-checkbox {
+  align-self: auto;
+}
+.ant-select-selector {
+  background-color: #404040;
+  border: none;
+  outline: none;
+}
+.ant-select:not(.ant-select-customize-input) .ant-select-selector {
+  background-color: #404040;
+  outline: none;
+  border: none;
+  color: white;
+}
+.truncate-name {
+  max-width: 100px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ant-modal .ant-modal-footer {
+  margin-top: 6px;
 }
