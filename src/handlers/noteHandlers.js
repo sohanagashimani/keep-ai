@@ -21,13 +21,12 @@ export const handleAddNote = (newNote) => {
       })
     );
     try {
-      const response = await axios.post(`/api/notes`, newNote);
-      if (response.status !== 200) {
-        toast.error("Something went wrong, please try again", toastConfig);
-        dispatch(deleteNote(newNote.id));
-      }
+      await axios.post(`/api/notes`, newNote);
+
       dispatch(setNavBarLoader(false));
     } catch (error) {
+      dispatch(deleteNote(newNote.id));
+
       toast.error("Something went wrong, please try again", toastConfig);
       dispatch(setNavBarLoader(false));
       throw new Error(error);
@@ -75,14 +74,11 @@ export const handleCompleteNote = (note) => {
       })
     );
     try {
-      const response = await axios.put(`/api/notes`, { ...updatedNote });
-      if (response.status !== 200) {
-        dispatch(updateNote(note));
-
-        toast.error("Something went wrong, please try again", toastConfig);
-      }
+      await axios.put(`/api/notes`, { ...updatedNote });
       dispatch(setNavBarLoader(false));
     } catch (error) {
+      dispatch(updateNote(note));
+      toast.error("Something went wrong, please try again", toastConfig);
       dispatch(setNavBarLoader(false));
       throw new Error(error);
     }
@@ -104,19 +100,17 @@ export const handleUpdateNote = (
     toggleNoteModal();
 
     try {
-      const response = await axios.put(`/api/notes`, {
+      await axios.put(`/api/notes`, {
         ...updatedNote,
       });
-      if (response.status !== 200) {
-        dispatch(
-          updateNote({
-            ...selectedNote,
-          })
-        );
-        toast.error("Something went wrong, please try again", toastConfig);
-      }
       dispatch(setNavBarLoader(false));
     } catch (error) {
+      toast.error("Something went wrong, please try again", toastConfig);
+      dispatch(
+        updateNote({
+          ...selectedNote,
+        })
+      );
       dispatch(setNavBarLoader(false));
       throw new Error(error);
     }

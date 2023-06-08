@@ -4,7 +4,6 @@ import { IoRefreshOutline } from "react-icons/io5";
 import Spinner from "../../../Spinner/Spinner";
 
 const NavBarSpinner = ({ loading, handleRefresh }) => {
-  console.log("NavBarSpinner.jsx:");
   const [showCheckmark, setShowCheckmark] = useState(false);
 
   useEffect(() => {
