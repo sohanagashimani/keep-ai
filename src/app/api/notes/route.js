@@ -1,6 +1,6 @@
-import createSupabase from "@/CreateSupabase";
 import { headers, cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import createSupabase from "../../../utils/CreateSupabase";
 
 export async function GET() {
   const supabase = createSupabase(headers, cookies);
