@@ -68,6 +68,8 @@ export default function App() {
         <Home
           {...{
             user,
+            setSession,
+            setUser,
           }}
         />
       </When>

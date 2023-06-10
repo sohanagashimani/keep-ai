@@ -2,7 +2,7 @@ import "./globals.css";
 import { Providers } from "@/store/Provider";
 
 export const metadata = {
-  title: "Google Keep Clone",
+  title: "Google Keep",
   description: "A notes app",
 };
 

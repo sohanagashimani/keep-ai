@@ -5,15 +5,17 @@ const initialState = {
   selectedNote: null,
   navBarLoader: false,
   notesLoader: false,
-  user: null,
 };
 
 const noteSlice = createSlice({
   name: "notes",
   initialState,
   reducers: {
-    setNotes: (state, action) => {
+    refreshNotes: (state, action) => {
       state.notes = action.payload;
+    },
+    setNotes: (state, action) => {
+      return { ...state, notes: [...state.notes, ...action.payload] };
     },
     selectNote: (state, action) => {
       state.selectedNote = action.payload;
@@ -44,9 +46,6 @@ const noteSlice = createSlice({
     setNotesLoader: (state, action) => {
       state.notesLoader = action.payload;
     },
-    setUser: (state, action) => {
-      state.user = action.payload;
-    },
   },
 });
 
@@ -59,6 +58,7 @@ export const {
   setNavBarLoader,
   setUser,
   setNotesLoader,
+  refreshNotes,
   setUserLoader,
 } = noteSlice.actions;
 

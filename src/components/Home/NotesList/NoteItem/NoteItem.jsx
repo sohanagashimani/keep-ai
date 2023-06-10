@@ -24,7 +24,7 @@ const NoteItem = ({
       onMouseLeave={() => setShowFooter(false)}
     >
       <div
-        className="pb-9"
+        className="pb-14"
         onClick={() => {
           setSelectedNote(note);
           reset({ ...note });

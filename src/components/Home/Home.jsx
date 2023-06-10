@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Empty } from "antd";
 import { useSelector, useDispatch } from "react-redux";
 import {
+  refreshNotes,
   selectNote,
   setNavBarLoader,
   setNotesLoader,
@@ -20,7 +21,6 @@ import Spinner from "../Spinner/Spinner";
 import FilterNotes from "./FilterNotes/FilterNotes";
 import {
   handleAddNote,
-  handleCompleteNote,
   handleDeleteNote,
   handleFetchNotes,
   handleUpdateNote,
@@ -28,10 +28,12 @@ import {
 import NotesList from "./NotesList/NotesList";
 import Header from "./Header/Header";
 import { supabase } from "@/utils/supabase";
+import { length } from "ramda";
 
-const Home = ({ user }) => {
+const Home = ({ user, setSession, setUser }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [sortBy, setSortBy] = useState("");
   const { notes, selectedNote, navBarLoader, notesLoader } = useSelector(
     (state) => state.notes
@@ -50,7 +52,7 @@ const Home = ({ user }) => {
     },
   });
   useEffect(() => {
-    dispatch(handleFetchNotes(setNotesLoader));
+    dispatch(handleFetchNotes(refreshNotes, setNotesLoader, 0, 100));
   }, [dispatch]);
   useEffect(() => {
     if (!isEmpty(errors)) {
@@ -61,16 +63,19 @@ const Home = ({ user }) => {
   }, [errors]);
 
   const onRefreshClick = () => {
-    dispatch(handleFetchNotes(setNavBarLoader));
+    dispatch(
+      handleFetchNotes(refreshNotes, setNavBarLoader, 0, length(sortedNotes))
+    );
   };
 
   const updateNote = (values) => {
     const updatedNote = {
-      ...selectedNote,
       ...values,
+      completed: selectedNote?.completed,
       lastModified: new Date(),
     };
-    dispatch(handleUpdateNote(updatedNote, toggleNoteModal, selectedNote));
+    toggleNoteModal();
+    dispatch(handleUpdateNote(updatedNote, selectedNote));
   };
 
   const addNewNote = (note) => {
@@ -85,6 +90,8 @@ const Home = ({ user }) => {
   const handleLogout = async () => {
     dispatch(setNavBarLoader(true));
     const { error } = await supabase.auth.signOut();
+    setSession(null);
+    setUser(null);
     dispatch(setNavBarLoader(false));
     if (error) {
       dispatch(setNavBarLoader(false));
@@ -118,7 +125,12 @@ const Home = ({ user }) => {
     dispatch(handleDeleteNote(note));
   };
   const completeNote = (note) => {
-    dispatch(handleCompleteNote(note));
+    const updatedNote = {
+      ...note,
+      completed: !note.completed,
+      lastModified: new Date(),
+    };
+    dispatch(handleUpdateNote(updatedNote, note));
   };
 
   return (
@@ -183,6 +195,10 @@ const Home = ({ user }) => {
               control,
               handleSubmit,
               isDirty,
+              setNavBarLoader,
+              setHasMore,
+              hasMore,
+              refreshNotes: onRefreshClick,
             }}
           />
         </When>

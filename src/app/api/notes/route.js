@@ -2,10 +2,18 @@ import { headers, cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import createSupabase from "../../../utils/CreateSupabase";
 
-export async function GET() {
+export async function GET(request) {
   const supabase = createSupabase(headers, cookies);
+  const length = parseInt(request.nextUrl.searchParams.get("length"));
+  const pageSize = parseInt(request.nextUrl.searchParams.get("pageSize"));
+  const start = length * pageSize;
+  const end = start + pageSize - 1;
 
-  const { data, error } = await supabase.from("notes").select("*");
+  const { data, error } = await supabase
+    .from("notes")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .range(start, end);
   if (error) {
     return NextResponse.error("Failed to fetch notes", { status: 500 });
   }
