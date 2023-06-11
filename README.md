@@ -12,6 +12,8 @@ This project is a clone of Google Keep, a note-taking application developed by G
 - Users can mark notes as completed
 - Users can search for specific notes using keywords or filters to quickly find the desired information.
 - The application is responsive
+- RLS enabled.
+- Infinite scroll available.
 ## Tech Stack
 
 - Next
