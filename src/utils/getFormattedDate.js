@@ -1,17 +1,11 @@
-import { format } from "date-fns";
+import { format, isToday, isYesterday, isThisYear } from "date-fns";
 
 export const getFormattedDate = (timestamp) => {
   const date = new Date(timestamp);
-  const currentDate = new Date();
 
-  let formattedTimestamp;
-  if (currentDate.toDateString() === date.toDateString()) {
-    formattedTimestamp = "Today, " + format(date, "h:mm a");
-  } else if (currentDate.getFullYear() === date.getFullYear()) {
-    formattedTimestamp = format(date, "'Yesterday,' h:mm a");
-  } else {
-    formattedTimestamp = format(date, "do MMMM, h:mm a");
-  }
+  if (isToday(date)) return format(date, "h:mm a");
 
-  return formattedTimestamp;
+  if (isYesterday(date)) return `Yesterday, ${format(date, "h:mm a")}`;
+
+  return format(date, isThisYear(date) ? "d MMM" : "d MMM yyyy");
 };
