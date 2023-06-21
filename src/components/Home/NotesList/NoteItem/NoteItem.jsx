@@ -32,7 +32,7 @@ const NoteItem = ({
         }}
       >
         <p className="text-lg font-semibold mb-2">{title}</p>
-        <p className="whitespace-pre-line">{content}</p>
+        <p className="whitespace-pre-line break-all">{content}</p>
       </div>
       <div className="absolute bottom-2 right-2 w-full pl-4">
         <When isTrue={showFooter || isMobile}>
