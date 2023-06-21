@@ -31,7 +31,7 @@ const NoteItem = ({
           showModal();
         }}
       >
-        <p className="text-lg font-semibold mb-2">{title}</p>
+        <p className="text-lg font-semibold mb-2 break-all">{title}</p>
         <p className="whitespace-pre-line break-all">{content}</p>
       </div>
       <div className="absolute bottom-2 right-2 w-full pl-4">
