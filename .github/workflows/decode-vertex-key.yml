@@ -13,4 +13,4 @@ jobs:
 
       - name: Decode vertex-key.json from secret
         run: |
-          echo "${{ secrets.VERTEX_KEY_B64 }}" | base64 -d > vertex-key.json
+          echo ${{ secrets.VERTEX_KEY_B64 }} | base64 --decode > vertex-key.json
