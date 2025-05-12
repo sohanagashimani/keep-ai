@@ -3,7 +3,7 @@ name: Decode Vertex Key
 on:
   workflow_dispatch:
   push:
-    branches: [main] # or your default branch
+    branches: [master] # or your default branch
 
 jobs:
   decode-key:
