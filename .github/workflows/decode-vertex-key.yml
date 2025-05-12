@@ -8,6 +8,7 @@ on:
 jobs:
   decode-key:
     runs-on: ubuntu-latest
+    environment: Production
     permissions:
       contents: read
       issues: write
@@ -17,4 +18,4 @@ jobs:
 
       - name: Decode vertex-key.json from secret
         run: |
-          echo ${{ secrets.VERTEX_KEY_B64 }} | base64 --decode > vertex-key.json
+          echo "${{ secrets.VERTEX_KEY_B64 }}" | base64 --decode > vertex-key.json
