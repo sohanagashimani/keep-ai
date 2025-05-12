@@ -15,7 +15,10 @@ export async function GET(request) {
     .order("created_at", { ascending: false })
     .range(start, end);
   if (error) {
-    return NextResponse.error("Failed to fetch notes", { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch notes" },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json(data);
@@ -27,7 +30,7 @@ export async function POST(request) {
   const { data, error } = await supabase.from("notes").insert(newNote);
 
   if (error) {
-    return NextResponse.error("Failed to add note", { status: 500 });
+    return NextResponse.json({ error: "Failed to add note" }, { status: 500 });
   }
 
   return NextResponse.json(data, { status: 200 });
@@ -43,7 +46,10 @@ export async function PUT(request) {
     .eq("id", noteData.id);
 
   if (error) {
-    return NextResponse.error("Failed to update note", { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to update note" },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json(data, { status: 200 });

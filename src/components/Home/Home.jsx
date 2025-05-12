@@ -63,9 +63,7 @@ const Home = ({ user, setSession, setUser }) => {
   }, [errors]);
 
   const onRefreshClick = () => {
-    dispatch(
-      handleFetchNotes(refreshNotes, setNavBarLoader, 0, length(sortedNotes))
-    );
+    dispatch(handleFetchNotes(refreshNotes, setNavBarLoader, 0, 100));
   };
 
   const updateNote = (values) => {
