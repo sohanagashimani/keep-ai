@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Drawer, Input, Button } from "antd";
-import { SendOutlined } from "@ant-design/icons";
+import { SendOutlined, CloseOutlined } from "@ant-design/icons";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { toastConfig } from "@/config/toastConfig";
@@ -51,7 +51,21 @@ const ChatDrawer = ({ visible, onClose, handleRefresh }) => {
         body: JSON.stringify({ message: userMessage }),
       });
 
-      if (!response.ok) throw new Error("Failed to send message");
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (
+          response.status === 429 ||
+          (errorData?.error && errorData.error.toLowerCase().includes("limit"))
+        ) {
+          toast.error(
+            "You have reached your daily AI chat limit.",
+            toastConfig
+          );
+          setLoading(false);
+          return;
+        }
+        throw new Error("Failed to send message");
+      }
 
       const reader = response.body.getReader();
       let assistantMessage = "";
@@ -108,20 +122,22 @@ const ChatDrawer = ({ visible, onClose, handleRefresh }) => {
     }
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
   return (
     <Drawer
       title={
-        <span className="font-bold text-lg text-gray-100">AI Assistant</span>
+        <div className="flex items-center justify-between w-full">
+          <span className="font-bold text-lg text-gray-100">AI Assistant</span>
+          <Button
+            type="text"
+            icon={<CloseOutlined style={{ fontSize: 20, color: "#fff" }} />}
+            onClick={onClose}
+            className="hover:bg-gray-700"
+            style={{ marginRight: -12 }}
+          />
+        </div>
       }
-      placement="right"
       onClose={onClose}
+      closeIcon={null}
       open={visible}
       size="large"
       bodyStyle={{
@@ -132,8 +148,9 @@ const ChatDrawer = ({ visible, onClose, handleRefresh }) => {
         height: "100%",
       }}
       headerStyle={{
-        background: "#181818",
-        borderBottom: "1px solid #222",
+        background: "#1a1a1a",
+        borderBottom: "1px solid #333",
+        padding: "16px 24px",
       }}
     >
       <div className="flex flex-col h-full">
@@ -151,7 +168,14 @@ const ChatDrawer = ({ visible, onClose, handleRefresh }) => {
                     ? "bg-blue-600 text-white"
                     : "bg-[#23272f] text-gray-200 border border-gray-700"
                 }`}
-                style={{ wordBreak: "break-word" }}
+                style={{
+                  wordBreak: "break-word",
+                  border:
+                    message.role === "user"
+                      ? "1px solid #2563eb"
+                      : "1px solid #333",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                }}
               >
                 {message.content}
               </div>
@@ -159,23 +183,27 @@ const ChatDrawer = ({ visible, onClose, handleRefresh }) => {
           ))}
           <div ref={messagesEndRef} />
         </div>
-        <div className="p-4 border-t border-gray-800 bg-[#181818]">
-          <div className="flex space-x-2">
+        <div className="p-4 border-t border-gray-700 bg-[#1a1a1a]">
+          <div className="flex space-x-2 items-end">
             <Input.TextArea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onPressEnter={handleSend}
               placeholder="Type your message..."
-              autoSize={{ minRows: 3, maxRows: 4 }}
-              // className="flex-1 border-none focus:shadow-none"
-              style={{ resize: "none" }}
+              autoSize={{ minRows: 2, maxRows: 4 }}
+              className="flex-1 bg-[#23272f] text-gray-200 border-none focus:shadow-none rounded-lg"
+              style={{
+                resize: "none",
+                padding: "10px",
+              }}
             />
             <Button
               type="primary"
               icon={<SendOutlined />}
               onClick={handleSend}
               loading={loading}
-              className="bg-blue-600 border-none mt-5"
+              className="bg-blue-600 border-none"
+              style={{ height: 40, width: 40, borderRadius: "50%" }}
             />
           </div>
         </div>
