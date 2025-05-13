@@ -37,5 +37,4 @@ next-env.d.ts
 # vertex key
 vertex-key.json.b64
 
-
-.cursor
+/.cursor

@@ -3,14 +3,11 @@ import { NextResponse } from "next/server";
 import createSupabase from "../../../utils/CreateSupabase";
 import { VertexAI } from "@google-cloud/vertexai";
 
-const keyPath = "vertex-key.json";
-
 export async function POST(request) {
   try {
     const supabase = createSupabase(headers, cookies);
     const { message } = await request.json();
 
-    // Get user's session
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -18,13 +15,11 @@ export async function POST(request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get user's notes for context
     const { data: notes } = await supabase
       .from("notes")
       .select("*")
       .order("created_at", { ascending: false });
 
-    // Create system message with expanded action protocol
     const systemMessage = `
 You are an AI assistant for a note-taking application. 
 When you want to perform an action (create, update, delete, mark as completed, mark as uncompleted, or search notes), respond ONLY with a JSON object in this format:
@@ -48,13 +43,11 @@ Example: {"action": "uncomplete_note", "id": "1"}
 Example: {"action": "delete_all_notes"}
 `;
 
-    // Get chat history
     const { data: chatHistory } = await supabase
       .from("chat_messages")
       .select("*")
       .order("created_at", { ascending: true });
 
-    // Prepare messages for Vertex AI
     const history = chatHistory
       .map(
         (msg) => `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`
@@ -63,17 +56,23 @@ Example: {"action": "delete_all_notes"}
 
     const prompt = `${systemMessage}\n${history}\nUser: ${message}\nAssistant:`;
 
-    // Save user message to database
     await supabase.from("chat_messages").insert({
       role: "user",
       content: message,
     });
+    const credential = JSON.parse(
+      Buffer.from(
+        process.env.GOOGLE_APPLICATION_CREDENTIALS,
+        "base64"
+      ).toString()
+    );
 
-    // Set up Vertex AI
     const vertex_ai = new VertexAI({
-      project: "resounding-age-438010-g3", // <-- replace with your GCP project ID
-      location: "us-central1", // or your region
-      keyFile: keyPath,
+      project: process.env.PROJECT_ID,
+      location: "us-central1",
+      googleAuthOptions: {
+        credentials: credential,
+      },
     });
 
     const model = "gemini-2.0-flash-lite-001";
@@ -83,7 +82,6 @@ Example: {"action": "delete_all_notes"}
       generation_config: { max_output_tokens: 512 },
     });
 
-    // Generate response
     const result = await generativeModel.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
     });
@@ -91,7 +89,6 @@ Example: {"action": "delete_all_notes"}
     let aiMessage = result.response.candidates[0].content.parts[0].text;
     let actionObj;
     try {
-      // Extract JSON from code block or text
       const match = aiMessage.match(/{[\s\S]*}/);
       actionObj = match ? JSON.parse(match[0]) : JSON.parse(aiMessage);
     } catch (e) {
@@ -212,13 +209,11 @@ Example: {"action": "delete_all_notes"}
       actionResult = actionObj.action;
     }
 
-    // Save assistant's response to database
     await supabase.from("chat_messages").insert({
       role: "assistant",
       content: aiMessage,
     });
 
-    // Return the response (no streaming for now)
     return NextResponse.json({ content: aiMessage, action: actionResult });
   } catch (error) {
     return NextResponse.json(
