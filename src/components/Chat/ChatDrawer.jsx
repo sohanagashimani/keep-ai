@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Drawer, Input, Button } from "antd";
+import { Drawer, Input, Button, Spin } from "antd";
 import { SendOutlined, CloseOutlined } from "@ant-design/icons";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { toastConfig } from "@/config/toastConfig";
+import When from "../When/When";
 
 const ChatDrawer = ({ visible, onClose, handleRefresh }) => {
   const [messages, setMessages] = useState([]);
@@ -13,7 +14,7 @@ const ChatDrawer = ({ visible, onClose, handleRefresh }) => {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
+  const [fetching, setFetching] = useState(false);
   useEffect(() => {
     if (visible) {
       fetchMessages();
@@ -25,10 +26,13 @@ const ChatDrawer = ({ visible, onClose, handleRefresh }) => {
   }, [messages]);
   const fetchMessages = async () => {
     try {
+      setFetching(true);
       const response = await axios.get("/api/chat");
       setMessages(response.data);
+      setFetching(false);
     } catch (error) {
       toast.error("Failed to fetch messages", toastConfig);
+      setFetching(false);
     }
   };
 
@@ -154,59 +158,66 @@ const ChatDrawer = ({ visible, onClose, handleRefresh }) => {
       }}
     >
       <div className="flex flex-col h-full">
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={`flex ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
-              <div
-                className={`max-w-[80%] rounded-xl p-3 shadow transition-all ${
-                  message.role === "user"
-                    ? "bg-blue-600 text-white"
-                    : "bg-[#23272f] text-gray-200 border border-gray-700"
-                }`}
-                style={{
-                  wordBreak: "break-word",
-                  border:
-                    message.role === "user"
-                      ? "1px solid #2563eb"
-                      : "1px solid #333",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-                }}
-              >
-                {message.content}
-              </div>
-            </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
-        <div className="p-4 border-t border-gray-700 bg-[#1a1a1a]">
-          <div className="flex space-x-2 items-end">
-            <Input.TextArea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onPressEnter={handleSend}
-              placeholder="Type your message..."
-              autoSize={{ minRows: 2, maxRows: 4 }}
-              className="flex-1 bg-[#23272f] text-gray-200 border-none focus:shadow-none rounded-lg"
-              style={{
-                resize: "none",
-                padding: "10px",
-              }}
-            />
-            <Button
-              type="primary"
-              icon={<SendOutlined />}
-              onClick={handleSend}
-              loading={loading}
-              className="bg-blue-600 border-none"
-              style={{ height: 40, width: 40, borderRadius: "50%" }}
-            />
+        <When isTrue={fetching}>
+          <div className="flex h-full justify-center items-center">
+            <Spin spinning={true} size="large" />
           </div>
-        </div>
+        </When>
+        <When isTrue={!fetching}>
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`flex ${
+                  message.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div
+                  className={`max-w-[80%] rounded-xl p-3 shadow transition-all ${
+                    message.role === "user"
+                      ? "bg-blue-600 text-white"
+                      : "bg-[#23272f] text-gray-200 border border-gray-700"
+                  }`}
+                  style={{
+                    wordBreak: "break-word",
+                    border:
+                      message.role === "user"
+                        ? "1px solid #2563eb"
+                        : "1px solid #333",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                  }}
+                >
+                  {message.content}
+                </div>
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+          <div className="p-4 border-t border-gray-700 bg-[#1a1a1a]">
+            <div className="flex space-x-2 items-end">
+              <Input.TextArea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onPressEnter={handleSend}
+                placeholder="Type your message..."
+                autoSize={{ minRows: 2, maxRows: 4 }}
+                className="flex-1 bg-[#23272f] text-gray-200 border-none focus:shadow-none rounded-lg"
+                style={{
+                  resize: "none",
+                  padding: "10px",
+                }}
+              />
+              <Button
+                type="primary"
+                icon={<SendOutlined />}
+                onClick={handleSend}
+                loading={loading}
+                className="bg-blue-600 border-none"
+                style={{ height: 40, width: 40, borderRadius: "50%" }}
+              />
+            </div>
+          </div>
+        </When>
       </div>
     </Drawer>
   );
