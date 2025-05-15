@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Drawer, Input, Button, Spin } from "antd";
-import { SendOutlined, CloseOutlined } from "@ant-design/icons";
+import { Drawer, Spin } from "antd";
+import { CloseOutlined } from "@ant-design/icons";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { toastConfig } from "@/config/toastConfig";
 import When from "../When/When";
+import ChatMessageBubble from "./ChatMessageBubble";
+import ChatInputArea from "./ChatInputArea";
 
 const ChatDrawer = ({ visible, onClose, handleRefresh }) => {
   const [messages, setMessages] = useState([]);
@@ -15,6 +17,8 @@ const ChatDrawer = ({ visible, onClose, handleRefresh }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
   const [fetching, setFetching] = useState(false);
+  const [drawerWidth, setDrawerWidth] = useState(640);
+
   useEffect(() => {
     if (visible) {
       fetchMessages();
@@ -24,6 +28,16 @@ const ChatDrawer = ({ visible, onClose, handleRefresh }) => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setDrawerWidth(window.innerWidth < 640 ? window.innerWidth : 700);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const fetchMessages = async () => {
     try {
       setFetching(true);
@@ -112,6 +126,8 @@ const ChatDrawer = ({ visible, onClose, handleRefresh }) => {
             "complete_note",
             "uncomplete_note",
             "delete_all_notes",
+            "restore_last_deleted_note",
+            "restore_note_from_notes_table",
           ].includes(parsed.action)
         ) {
           handleRefresh();
@@ -130,14 +146,14 @@ const ChatDrawer = ({ visible, onClose, handleRefresh }) => {
     <Drawer
       title={
         <div className="flex items-center justify-between w-full">
-          <span className="font-bold text-lg text-gray-100">AI Assistant</span>
-          <Button
-            type="text"
-            icon={<CloseOutlined style={{ fontSize: 20, color: "#fff" }} />}
+          <span className="font-bold text-lg text-[#e5e5e5]">AI Assistant</span>
+          <button
+            type="button"
             onClick={onClose}
-            className="hover:bg-gray-700"
-            style={{ marginRight: -12 }}
-          />
+            className="hover:bg-[#232323] rounded-full p-1 ml-2"
+          >
+            <CloseOutlined style={{ fontSize: 20, color: "#e5e5e5" }} />
+          </button>
         </div>
       }
       onClose={onClose}
@@ -146,16 +162,17 @@ const ChatDrawer = ({ visible, onClose, handleRefresh }) => {
       size="large"
       bodyStyle={{
         padding: 0,
-        background: "#181818",
+        background: "#1a1a1a",
         display: "flex",
         flexDirection: "column",
         height: "100%",
       }}
       headerStyle={{
-        background: "#1a1a1a",
+        background: "#181818",
         borderBottom: "1px solid #333",
         padding: "16px 24px",
       }}
+      width={drawerWidth}
     >
       <div className="flex flex-col h-full">
         <When isTrue={fetching}>
@@ -164,7 +181,7 @@ const ChatDrawer = ({ visible, onClose, handleRefresh }) => {
           </div>
         </When>
         <When isTrue={!fetching}>
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar bg-[#1a1a1a]">
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -172,51 +189,17 @@ const ChatDrawer = ({ visible, onClose, handleRefresh }) => {
                   message.role === "user" ? "justify-end" : "justify-start"
                 }`}
               >
-                <div
-                  className={`max-w-[80%] rounded-xl p-3 shadow transition-all ${
-                    message.role === "user"
-                      ? "bg-blue-600 text-white"
-                      : "bg-[#23272f] text-gray-200 border border-gray-700"
-                  }`}
-                  style={{
-                    wordBreak: "break-word",
-                    border:
-                      message.role === "user"
-                        ? "1px solid #2563eb"
-                        : "1px solid #333",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-                  }}
-                >
-                  {message.content}
-                </div>
+                <ChatMessageBubble message={message} />
               </div>
             ))}
             <div ref={messagesEndRef} />
           </div>
-          <div className="p-4 border-t border-gray-700 bg-[#1a1a1a]">
-            <div className="flex space-x-2 items-end">
-              <Input.TextArea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onPressEnter={handleSend}
-                placeholder="Type your message..."
-                autoSize={{ minRows: 2, maxRows: 4 }}
-                className="flex-1 bg-[#23272f] text-gray-200 border-none focus:shadow-none rounded-lg"
-                style={{
-                  resize: "none",
-                  padding: "10px",
-                }}
-              />
-              <Button
-                type="primary"
-                icon={<SendOutlined />}
-                onClick={handleSend}
-                loading={loading}
-                className="bg-blue-600 border-none"
-                style={{ height: 40, width: 40, borderRadius: "50%" }}
-              />
-            </div>
-          </div>
+          <ChatInputArea
+            input={input}
+            setInput={setInput}
+            handleSend={handleSend}
+            loading={loading}
+          />
         </When>
       </div>
     </Drawer>

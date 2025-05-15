@@ -1,11 +1,11 @@
 import { headers, cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import createSupabase from "../../../utils/CreateSupabase";
-import { VertexAI } from "@google-cloud/vertexai";
 import { estimateTokens } from "../../../utils/tokens";
 import { checkUserLimits, incrementUserUsage } from "../../../supabase/aiUsage";
 import { handleNoteAction } from "../../../supabase/notesActions";
 import systemMessage from "@/supabase/prompt";
+import { vertexClient } from "@/supabase/vertexClient";
 
 export async function POST(request) {
   try {
@@ -63,25 +63,11 @@ export async function POST(request) {
       role: "user",
       content: message,
     });
-    const credential = JSON.parse(
-      Buffer.from(
-        process.env.GOOGLE_APPLICATION_CREDENTIALS,
-        "base64"
-      ).toString()
-    );
 
-    const vertex_ai = new VertexAI({
-      project: process.env.PROJECT_ID,
-      location: "us-central1",
-      googleAuthOptions: {
-        credentials: credential,
-      },
-    });
+    const vertexAi = vertexClient();
 
-    const model = "gemini-2.0-flash-lite-001";
-
-    const generativeModel = vertex_ai.preview.getGenerativeModel({
-      model,
+    const generativeModel = vertexAi.preview.getGenerativeModel({
+      model: "gemini-2.0-flash-lite-001",
       generation_config: { max_output_tokens: 512 },
     });
 

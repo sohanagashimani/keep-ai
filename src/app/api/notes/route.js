@@ -12,6 +12,7 @@ export async function GET(request) {
   const { data, error } = await supabase
     .from("notes")
     .select("*")
+    .eq("is_deleted", false)
     .order("created_at", { ascending: false })
     .range(start, end);
   if (error) {
@@ -42,7 +43,10 @@ export async function PUT(request) {
   const noteData = await request.json();
   const { data, error } = await supabase
     .from("notes")
-    .update(noteData)
+    .update({
+      ...noteData,
+      lastModified: new Date().toISOString(),
+    })
     .eq("id", noteData.id);
 
   if (error) {

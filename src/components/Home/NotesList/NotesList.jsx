@@ -5,11 +5,9 @@ import NoteModal from "./NoteModal/NoteModal";
 import When from "../../When/When";
 import NoteItem from "./NoteItem/NoteItem";
 import { useDispatch } from "react-redux";
-import { toastConfig } from "@/config/toastConfig";
 import { handleFetchNotes } from "@/handlers/noteHandlers";
 import { length } from "ramda";
 import InfiniteScroll from "react-infinite-scroll-component";
-import { toast } from "react-toastify";
 import { setNotes } from "@/store/noteSlice";
 
 const NotesList = ({
@@ -36,7 +34,6 @@ const NotesList = ({
       handleFetchNotes(setNotes, setNavBarLoader, length(sortedNotes), 10)
     ).then((res) => {
       setHasMore(res);
-      if (!res) toast.info("No more notes to load", toastConfig);
     });
   };
   return (

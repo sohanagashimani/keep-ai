@@ -1,0 +1,35 @@
+import React from "react";
+import { Input, Button } from "antd";
+import { SendOutlined } from "@ant-design/icons";
+
+const ChatInputArea = ({ input, setInput, handleSend, loading }) => (
+  <div className="p-4 border-t border-gray-700 bg-neutral-900">
+    <div className="flex space-x-2 items-end">
+      <Input.TextArea
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onPressEnter={handleSend}
+        placeholder="Type your message..."
+        autoSize={{ minRows: 2, maxRows: 4 }}
+        className="flex-1 bg-neutral-800 text-gray-200 border-none focus:shadow-none rounded-xl text-base placeholder-gray-400"
+        style={{ resize: "none", padding: "10px" }}
+      />
+      <Button
+        type="primary"
+        icon={<SendOutlined style={{ color: "#fff", fontSize: 22 }} />}
+        onClick={handleSend}
+        loading={loading}
+        className="bg-blue-600 border-none rounded-full flex justify-center items-center hover:bg-blue-700"
+        style={{
+          height: 44,
+          width: 44,
+          minWidth: 44,
+          minHeight: 44,
+          boxShadow: "none",
+        }}
+      />
+    </div>
+  </div>
+);
+
+export default ChatInputArea;

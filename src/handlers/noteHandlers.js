@@ -56,7 +56,10 @@ export const handleDeleteNote = (note) => {
     dispatch(setNavBarLoader(true));
     dispatch(deleteNote(note.id));
     try {
-      await supabase.from("notes").delete().eq("id", note.id);
+      await supabase
+        .from("notes")
+        .update({ is_deleted: true, lastModified: new Date().toISOString() })
+        .eq("id", note.id);
       dispatch(setNavBarLoader(false));
     } catch (error) {
       dispatch(setNavBarLoader(false));
