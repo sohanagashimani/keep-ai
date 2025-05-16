@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { Button } from "antd";
-import { MessageOutlined } from "@ant-design/icons";
 import NavBarSpinner from "./NavBarSpinner/NavBarSpinner";
 import FilterNotes from "../FilterNotes/FilterNotes";
 import NavBrand from "./NavBrand/NavBrand";
 import NavSearchBar from "./NavSearchBar/NavSearchBar";
 import NavUserIconAndLogoutModal from "./NavUserIconAndLogoutModal/NavUserIconAndLogoutModal";
 import ChatDrawer from "../../Chat/ChatDrawer";
+import { FiMessageCircle } from "react-icons/fi";
 
 const Header = ({
   setSearchTerm,
@@ -40,7 +40,7 @@ const Header = ({
 
   return (
     <>
-      <div className="flex justify-between items-center w-full">
+      <div className="flex justify-between items-center w-full border-b border-neutral-800 shadow-sm  px-4 py-2 sticky top-0 z-20 gap-2">
         <NavBrand />
         <NavSearchBar
           {...{
@@ -51,7 +51,7 @@ const Header = ({
             handleSearchBlur,
           }}
         />
-        <div className="flex">
+        <div className="flex items-center gap-4">
           <div className="hidden md:flex">
             <FilterNotes
               {...{
@@ -60,27 +60,26 @@ const Header = ({
               }}
             />
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              type="text"
-              icon={<MessageOutlined />}
-              onClick={() => setChatDrawerVisible(true)}
-              className="text-gray-200 hover:text-white"
-            />
-            <NavBarSpinner
-              loading={navBarLoader}
-              handleRefresh={handleRefresh}
-            />
-            <NavUserIconAndLogoutModal
-              {...{
-                user,
-                logoutModalVisible,
-                handleLogout,
-                hideLogoutModal,
-                showLogoutModal,
-              }}
-            />
-          </div>
+          <Button
+            type="text"
+            icon={<FiMessageCircle size={22} className="text-gray-200" />}
+            onClick={() => setChatDrawerVisible(true)}
+            className="flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-full px-0 md:px-3 py-1 pl-2 sm:py-1 font-medium text-gray-200 transition-all duration-200 min-w-[36px] min-h-[36px] justify-center"
+          >
+            <span className="hidden md:flex text-gray-200 text-sm sm:text-base">
+              AI Assistant
+            </span>
+          </Button>
+          <NavBarSpinner loading={navBarLoader} handleRefresh={handleRefresh} />
+          <NavUserIconAndLogoutModal
+            {...{
+              user,
+              logoutModalVisible,
+              handleLogout,
+              hideLogoutModal,
+              showLogoutModal,
+            }}
+          />
         </div>
       </div>
       <ChatDrawer
