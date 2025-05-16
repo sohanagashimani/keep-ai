@@ -7,6 +7,8 @@ import NavSearchBar from "./NavSearchBar/NavSearchBar";
 import NavUserIconAndLogoutModal from "./NavUserIconAndLogoutModal/NavUserIconAndLogoutModal";
 import ChatDrawer from "../../Chat/ChatDrawer";
 import { FiMessageCircle } from "react-icons/fi";
+import { useMediaQuery } from "react-responsive";
+import { useRouter } from "next/navigation";
 
 const Header = ({
   setSearchTerm,
@@ -20,6 +22,8 @@ const Header = ({
 }) => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [chatDrawerVisible, setChatDrawerVisible] = useState(false);
+  const isMobile = useMediaQuery({ maxWidth: 767 });
+  const router = useRouter();
 
   const handleSearchFocus = () => {
     setIsSearchFocused(true);
@@ -36,6 +40,14 @@ const Header = ({
 
   const hideLogoutModal = () => {
     setLogoutModalVisible(false);
+  };
+
+  const handleChatClick = () => {
+    if (isMobile) {
+      router.push("/chat");
+    } else {
+      setChatDrawerVisible(true);
+    }
   };
 
   return (
@@ -63,12 +75,12 @@ const Header = ({
           <Button
             type="text"
             icon={<FiMessageCircle size={22} className="text-gray-200" />}
-            onClick={() => setChatDrawerVisible(true)}
+            onClick={handleChatClick}
             className="flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-full px-0 md:px-3 py-1 pl-2 sm:py-1 font-medium text-gray-200 transition-all duration-200 min-w-[36px] min-h-[36px] justify-center"
           >
-            <span className="hidden md:flex text-gray-200 text-sm sm:text-base">
+            {/* <span className="hidden md:flex text-gray-200 text-sm sm:text-base">
               AI Assistant
-            </span>
+            </span> */}
           </Button>
           <NavBarSpinner loading={navBarLoader} handleRefresh={handleRefresh} />
           <NavUserIconAndLogoutModal
