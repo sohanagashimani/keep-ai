@@ -4,8 +4,6 @@ import { useEffect, useState, Suspense } from "react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import Home from "@/components/Home/Home";
 import { isEmpty } from "ramda";
-import { ToastContainer, Zoom } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { supabase } from "@/utils/supabase";
 import LoadingSpinner from "@/components/LoadingSpinner/LoadingSpinner";
 
@@ -64,13 +62,15 @@ function AuthComponent() {
   }
 
   return (
-    <Suspense fallback={
-      <div className="flex flex-row items-center h-screen justify-center">
-        <div className="flex flex-col">
-          <LoadingSpinner />
+    <Suspense
+      fallback={
+        <div className="flex flex-row items-center h-screen justify-center">
+          <div className="flex flex-col">
+            <LoadingSpinner />
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <Home
         {...{
           user,
@@ -85,14 +85,15 @@ function AuthComponent() {
 export default function App() {
   return (
     <div className="flex flex-col min-h-screen">
-      <ToastContainer transition={Zoom} />
-      <Suspense fallback={
-        <div className="flex flex-row items-center h-screen justify-center">
-          <div className="flex flex-col">
-            <LoadingSpinner />
+      <Suspense
+        fallback={
+          <div className="flex flex-row items-center h-screen justify-center">
+            <div className="flex flex-col">
+              <LoadingSpinner />
+            </div>
           </div>
-        </div>
-      }>
+        }
+      >
         <AuthComponent />
       </Suspense>
     </div>

@@ -6,6 +6,7 @@ import { checkUserLimits, incrementUserUsage } from "../../../supabase/aiUsage";
 import { handleNoteAction } from "../../../supabase/notesActions";
 import systemMessage from "@/supabase/prompt";
 import { vertexClient } from "@/supabase/vertexClient";
+import dayjs from "dayjs";
 
 export async function POST(request) {
   try {
@@ -19,10 +20,9 @@ export async function POST(request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     // --- DAILY USAGE LIMIT LOGIC ---
-    const today = new Date().toISOString().slice(0, 10);
+    const today = dayjs().format("YYYY-MM-DD");
     const DAILY_LIMIT = 50; // message limit
-    const DAILY_TOKEN_LIMIT = 10000; // token limit
-
+    const DAILY_TOKEN_LIMIT = 50000; // token limit
     const isUnlimited = session.user.app_metadata?.unlimited === true;
     if (!isUnlimited) {
       const { allowed, error: limitError } = await checkUserLimits(

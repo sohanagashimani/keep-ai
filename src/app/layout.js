@@ -1,5 +1,6 @@
 import "./globals.css";
 import { Providers } from "@/store/Provider";
+import ClientToastContainer from "@/components/ClientToastContainer";
 
 export const metadata = {
   title: "Google Keep",
@@ -11,6 +12,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body suppressHydrationWarning>
         <Providers>{children}</Providers>
+        <ClientToastContainer />
       </body>
     </html>
   );

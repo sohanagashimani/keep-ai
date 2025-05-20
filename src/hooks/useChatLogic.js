@@ -9,7 +9,6 @@ const useChatLogic = handleRefresh => {
   const [loading, setLoading] = useState(false);
   const [fetchingMessages, setFetchingMessages] = useState(false);
   const messagesEndRef = useRef(null);
-
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
@@ -55,11 +54,12 @@ const useChatLogic = handleRefresh => {
           response.status === 429 ||
           (errorData?.error && errorData.error.toLowerCase().includes("limit"))
         ) {
-          toast.error(
-            "You have reached your daily AI chat limit.",
-            toastConfig
-          );
+          toast.error("You have reached your daily AI chat limit.", {
+            ...toastConfig,
+            autoClose: 2600,
+          });
           setLoading(false);
+          setMessages(prev => prev.slice(0, -1));
           return;
         }
         throw new Error("Failed to send message");
