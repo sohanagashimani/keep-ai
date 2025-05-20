@@ -51,7 +51,7 @@ export async function POST(request) {
 
     const history = chatHistory
       .map(
-        (msg) => `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`
+        msg => `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`
       )
       .join("\n");
 
@@ -86,7 +86,6 @@ export async function POST(request) {
 
     const { finalMessage, actionResult } = await handleNoteAction(
       supabase,
-      session,
       actionObj,
       aiMessage
     );

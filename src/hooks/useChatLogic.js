@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { toastConfig } from "@/config/toastConfig";
 
-const useChatLogic = (handleRefresh) => {
+const useChatLogic = handleRefresh => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -34,11 +34,11 @@ const useChatLogic = (handleRefresh) => {
     if (!input.trim()) return;
 
     setLoading(true);
-    const userMessage = input;
+    const userMessage = input.trim();
     setInput("");
 
     // Add user message to UI immediately
-    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
+    setMessages(prev => [...prev, { role: "user", content: userMessage }]);
 
     try {
       const response = await fetch("/api/chat", {
@@ -86,7 +86,7 @@ const useChatLogic = (handleRefresh) => {
           parsed = { content: assistantMessage, action: null };
         }
         // Update the last message in real-time
-        setMessages((prev) => {
+        setMessages(prev => {
           const newMessages = [...prev];
           const lastMessage = newMessages[newMessages.length - 1];
           if (lastMessage?.role === "assistant") {
@@ -116,7 +116,7 @@ const useChatLogic = (handleRefresh) => {
     } catch (error) {
       toast.error("Failed to send message", toastConfig);
       // Remove the failed message
-      setMessages((prev) => prev.slice(0, -1));
+      setMessages(prev => prev.slice(0, -1));
     } finally {
       setLoading(false);
     }

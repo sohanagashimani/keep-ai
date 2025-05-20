@@ -28,7 +28,6 @@ import {
 import NotesList from "./NotesList/NotesList";
 import Header from "./Header/Header";
 import { supabase } from "@/utils/supabase";
-import { length } from "ramda";
 
 const Home = ({ user, setSession, setUser }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -138,9 +137,7 @@ const Home = ({ user, setSession, setUser }) => {
     >
       <When isTrue={notesLoader}>
         <div className="h-screen flex flex-row items-center justify-center">
-          <div className="flex flex-col">
             <Spinner spinning={notesLoader} />
-          </div>
         </div>
       </When>
       <When isTrue={!notesLoader}>

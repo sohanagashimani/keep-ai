@@ -1,7 +1,8 @@
 import { vertexClient } from "./vertexClient.js";
+import Fuse from "fuse.js";
 
 // --- Helper: Create Note ---
-async function createNote(supabase, session, { title, content }) {
+async function createNote(supabase, { title, content }) {
   title = (title || "").trim();
   if (!title || title.length > 50 || /^\s+$/.test(title)) {
     return { error: "Cannot create note: Invalid title." };
@@ -9,7 +10,6 @@ async function createNote(supabase, session, { title, content }) {
   const { error } = await supabase.from("notes").insert({
     title,
     content: content || "",
-    user_id: session.user.id,
     completed: false,
     lastModified: new Date().toISOString(),
     created_at: new Date().toISOString(),
@@ -22,67 +22,15 @@ async function createNote(supabase, session, { title, content }) {
 // --- Helper: Search Notes (robust, Typesense-style) ---
 async function searchNotes(
   supabase,
-  session,
   query,
   { limit = 10, isDeleted = false } = {}
 ) {
   if (!query) return { matches: [] };
 
-  // 1. Exact match (case-insensitive, title only)
-  let { data: exact, error: exactErr } = await supabase
-    .from("notes")
-    .select("id, title, content")
-    .eq("user_id", session.user.id)
-    .eq("is_deleted", isDeleted)
-    .or(`title.ilike.${query}`)
-    .limit(limit);
-
-  if (exactErr) {
-    return { error: exactErr.message };
-  }
-
-  const normQuery = (query || "").trim().toLowerCase();
-
-  if (exact && exact.length > 0) {
-    const trueExact = exact.filter(
-      (note) => (note.title || "").trim().toLowerCase() === normQuery
-    );
-    if (trueExact.length > 0) {
-      return { matches: trueExact, type: "exact" };
-    } else {
-      return {
-        matches: [],
-        type: "exact",
-      };
-    }
-  }
-
-  // 2. Substring match (ilike with wildcards, title only)
-  let { data: sub, error: subErr } = await supabase
-    .from("notes")
-    .select("id, title, content")
-    .eq("user_id", session.user.id)
-    .eq("is_deleted", isDeleted)
-    .or(`title.ilike.%${query}%`)
-    .limit(limit);
-
-  if (subErr) {
-    return { error: subErr.message };
-  }
-
-  if (sub && sub.length > 0) {
-    // Filter out any exact matches that might have been missed
-    const filteredSub = sub.filter(
-      (note) => !exact?.some((e) => e.id === note.id)
-    );
-    return { matches: filteredSub, type: "substring" };
-  }
-
-  // 3. Fuzzy match (JS fallback, Levenshtein, title only)
+  // Get all notes
   let { data: allNotes, error: allNotesErr } = await supabase
     .from("notes")
     .select("id, title, content")
-    .eq("user_id", session.user.id)
     .eq("is_deleted", isDeleted);
 
   if (allNotesErr) {
@@ -91,42 +39,40 @@ async function searchNotes(
 
   if (!allNotes) return { matches: [] };
 
-  function levenshtein(a, b) {
-    if (!a || !b) return Infinity;
-    if (a === b) return 0;
-    const matrix = Array.from({ length: a.length + 1 }, () => []);
-    for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
-    for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
-    for (let i = 1; i <= a.length; i++) {
-      for (let j = 1; j <= b.length; j++) {
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j] + 1,
-          matrix[i][j - 1] + 1,
-          matrix[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
-        );
-      }
-    }
-    return matrix[a.length][b.length];
-  }
+  // Configure Fuse.js options
+  const options = {
+    keys: ["title"], // Search in title field
+    threshold: 0.2, // Lower threshold means more strict matching
+    distance: 100, // Maximum distance between characters
+    includeScore: true, // Include match score in results
+    minMatchCharLength: 2, // Minimum length of pattern that can be matched
+    shouldSort: true, // Sort results by score
+    findAllMatches: true, // Find all matches
+    location: 0, // Start matching from the beginning
+    ignoreLocation: false, // Don't ignore location
+    useExtendedSearch: true, // Enable extended search features
+  };
 
-  const fuzzy = allNotes
-    .map((note) => ({
-      ...note,
-      distance: levenshtein(
-        (note.title || "").toLowerCase(),
-        query.toLowerCase()
-      ),
-    }))
-    .filter((note) => note.distance <= 2)
-    .sort((a, b) => a.distance - b.distance)
-    .map(({ distance, ...note }) => note);
+  // Create Fuse instance
+  const fuse = new Fuse(allNotes, options);
 
-  if (fuzzy.length > 0) return { matches: fuzzy, type: "fuzzy" };
-  return { matches: [] };
+  // Perform search
+  const results = fuse.search(query);
+
+  // Format results
+  const matches = results.slice(0, limit).map(result => ({
+    ...result.item,
+    score: result.score,
+  }));
+
+  return {
+    matches,
+    type: matches.length > 0 ? "fuzzy" : "none",
+  };
 }
 
 // --- Helper: Update Note ---
-async function updateNote(supabase, session, { id, title, content }) {
+async function updateNote(supabase, { id, title, content }) {
   if (!id) return { error: "Missing note id." };
   const { error } = await supabase
     .from("notes")
@@ -135,34 +81,20 @@ async function updateNote(supabase, session, { id, title, content }) {
       content: content || undefined,
       lastModified: new Date().toISOString(),
     })
-    .eq("id", id)
-    .eq("user_id", session.user.id);
+    .eq("id", id);
   return error
     ? { error: `Failed to update note: ${error.message}` }
     : { message: "Note updated." };
 }
 
-// --- Helper: Delete Note ---
-async function deleteNote(supabase, session, { id }) {
-  if (!id) return { error: "Missing note id." };
-  const { error } = await supabase
-    .from("notes")
-    .delete()
-    .eq("id", id)
-    .eq("user_id", session.user.id);
-  return error
-    ? { error: `Failed to delete note: ${error.message}` }
-    : { message: "Note deleted." };
-}
-
 // --- Helper: Complete/Uncomplete Note ---
-async function completeNote(supabase, session, { id, completed }) {
+async function completeNote(supabase, { id, completed }) {
   if (!id) return { error: "Missing note id." };
   const { error } = await supabase
     .from("notes")
     .update({ completed, lastModified: new Date().toISOString() })
-    .eq("id", id)
-    .eq("user_id", session.user.id);
+    .eq("id", id);
+
   return error
     ? {
         error: `Failed to mark note as ${
@@ -173,30 +105,44 @@ async function completeNote(supabase, session, { id, completed }) {
 }
 
 // --- Helper: Delete All Notes ---
-async function deleteAllNotes(supabase, session) {
-  const { error } = await supabase
-    .from("notes")
-    .delete()
-    .eq("user_id", session.user.id);
-  return error
-    ? { error: `Failed to delete all notes: ${error.message}` }
-    : { message: "All notes deleted." };
-}
+// async function deleteAllNotes(supabase) {
+//   const { error } = await supabase.from("notes").update({
+//     is_deleted: true,
+//     lastModified: new Date().toISOString(),
+//   });
 
-// --- Helper: Count Notes by Title (case-insensitive, trimmed) ---
-export async function countNotesByTitle(supabase, session, title) {
-  if (!title) return 0;
-  const normTitle = title.trim().toLowerCase();
-  const { data, error } = await supabase
-    .from("notes")
-    .select("id, title")
-    .eq("user_id", session.user.id);
+//   return error
+//     ? { error: `Failed to delete all notes: ${error.message}` }
+//     : { message: "All notes deleted." };
+// }
 
-  if (error || !data) return 0;
+// --- Helper: Count Notes (enhanced with multiple counting options) ---
+export async function countNotes(supabase, { match, status } = {}) {
+  let query = supabase.from("notes").select("id", { count: "exact" });
 
-  return data.filter(
-    (note) => (note.title || "").trim().toLowerCase() === normTitle
-  ).length;
+  // Apply filters based on parameters
+  if (match) {
+    // Count by title (case-insensitive, trimmed)
+    const normTitle = match.trim().toLowerCase();
+    const { data, error } = await query;
+    if (error || !data) return 0;
+    return data.filter(
+      note => (note.title || "").trim().toLowerCase() === normTitle
+    ).length;
+  }
+
+  if (status === "completed") {
+    query = query.eq("completed", true);
+  } else if (status === "uncompleted") {
+    query = query.eq("completed", false);
+  }
+
+  // Exclude deleted notes
+  query = query.eq("is_deleted", false);
+
+  const { count, error } = await query;
+  if (error) return 0;
+  return count || 0;
 }
 
 // --- Helper: Ask Note (LLM Q&A over note content) ---
@@ -212,13 +158,33 @@ export async function askNoteLLM(noteContent, question) {
   return result.response.candidates[0].content.parts[0].text.trim();
 }
 
+// --- Helper: List Completed Notes ---
+async function listCompletedNotes(supabase) {
+  const { data: notes, error } = await supabase
+    .from("notes")
+    .select("id, title, content, completed, lastModified")
+    .eq("completed", true)
+    .eq("is_deleted", false)
+    .order("lastModified", { ascending: false });
+
+  if (error) {
+    return { error: `Failed to fetch completed notes: ${error.message}` };
+  }
+
+  if (!notes || notes.length === 0) {
+    return { message: "No completed notes found." };
+  }
+
+  return {
+    message: `Completed notes:\n${notes
+      .map((n, index) => `${index + 1}. ${n.title}`)
+      .join("\n")}`,
+    notes,
+  };
+}
+
 // --- Main Handler ---
-export async function handleNoteAction(
-  supabase,
-  session,
-  actionObj,
-  aiMessage
-) {
+export async function handleNoteAction(supabase, actionObj, aiMessage) {
   let actionResult = null;
   let finalMessage = aiMessage;
 
@@ -247,7 +213,7 @@ export async function handleNoteAction(
       // Call handleNoteAction recursively with the original action, but with id set
       return await handleNoteAction(
         supabase,
-        session,
+
         { ...actionObj.originalAction, id: note.id },
         aiMessage
       );
@@ -261,14 +227,14 @@ export async function handleNoteAction(
 
   // Handle other actions
   if (action === "create_note") {
-    const res = await createNote(supabase, session, actionObj);
+    const res = await createNote(supabase, actionObj);
     return { finalMessage: res.error || res.message, actionResult: action };
   } else if (action === "update_note") {
     if (actionObj.id) {
-      const res = await updateNote(supabase, session, actionObj);
+      const res = await updateNote(supabase, actionObj);
       return { finalMessage: res.error || res.message, actionResult: action };
     } else if (actionObj.match) {
-      const search = await searchNotes(supabase, session, actionObj.match);
+      const search = await searchNotes(supabase, actionObj.match);
       if (search.error)
         return {
           finalMessage: `Failed to find notes: ${search.error}`,
@@ -282,7 +248,7 @@ export async function handleNoteAction(
       } else if (search.type === "exact" && search.matches.length >= 1) {
         // Pick the first exact match automatically
         const noteToUpdate = search.matches[0];
-        const res = await updateNote(supabase, session, {
+        const res = await updateNote(supabase, {
           ...actionObj,
           id: noteToUpdate.id,
         });
@@ -290,7 +256,7 @@ export async function handleNoteAction(
       } else if (search.type === "fuzzy" && search.matches.length >= 1) {
         // Pick the closest fuzzy match automatically
         const noteToUpdate = search.matches[0];
-        const res = await updateNote(supabase, session, {
+        const res = await updateNote(supabase, {
           ...actionObj,
           id: noteToUpdate.id,
         });
@@ -298,7 +264,7 @@ export async function handleNoteAction(
       } else if (search.matches.length === 1) {
         // Only one match (substring)
         const noteToUpdate = search.matches[0];
-        const res = await updateNote(supabase, session, {
+        const res = await updateNote(supabase, {
           ...actionObj,
           id: noteToUpdate.id,
         });
@@ -324,14 +290,14 @@ export async function handleNoteAction(
           is_deleted: true,
           lastModified: new Date().toISOString(),
         })
-        .eq("id", actionObj.id)
-        .eq("user_id", session.user.id);
+        .eq("id", actionObj.id);
+
       return {
         finalMessage: res.error || "Note deleted.",
         actionResult: action,
       };
     } else if (actionObj.match) {
-      const search = await searchNotes(supabase, session, actionObj.match);
+      const search = await searchNotes(supabase, actionObj.match);
       if (search.error)
         return {
           finalMessage: `Failed to find notes: ${search.error}`,
@@ -350,8 +316,8 @@ export async function handleNoteAction(
             is_deleted: true,
             lastModified: new Date().toISOString(),
           })
-          .eq("id", noteToDelete.id)
-          .eq("user_id", session.user.id);
+          .eq("id", noteToDelete.id);
+
         return {
           finalMessage: res.error || "Note deleted.",
           actionResult: action,
@@ -381,13 +347,13 @@ export async function handleNoteAction(
   } else if (action === "complete_note" || action === "uncomplete_note") {
     const completed = action === "complete_note";
     if (actionObj.id) {
-      const res = await completeNote(supabase, session, {
+      const res = await completeNote(supabase, {
         id: actionObj.id,
         completed,
       });
       return { finalMessage: res.error || res.message, actionResult: action };
     } else if (actionObj.match) {
-      const search = await searchNotes(supabase, session, actionObj.match);
+      const search = await searchNotes(supabase, actionObj.match);
       if (search.error)
         return {
           finalMessage: `Failed to find notes: ${search.error}`,
@@ -402,7 +368,7 @@ export async function handleNoteAction(
         };
       } else if (search.matches.length === 1) {
         const noteToUpdate = search.matches[0];
-        const res = await completeNote(supabase, session, {
+        const res = await completeNote(supabase, {
           id: noteToUpdate.id,
           completed,
         });
@@ -434,7 +400,7 @@ export async function handleNoteAction(
       };
     }
   } else if (action === "search_notes") {
-    const search = await searchNotes(supabase, session, actionObj.query);
+    const search = await searchNotes(supabase, actionObj.query);
     if (search.error)
       return {
         finalMessage: `Failed to search notes: ${search.error}`,
@@ -447,31 +413,35 @@ export async function handleNoteAction(
       };
     return {
       finalMessage:
-        `Found notes:\n` + search.matches.map((n) => `- ${n.title}`).join("\n"),
+        `Found notes:\n` + search.matches.map(n => `- ${n.title}`).join("\n"),
       actionResult: action,
     };
   } else if (action === "delete_all_notes") {
-    if (!actionObj.confirm) {
-      return {
-        finalMessage: `Are you sure you want to delete all notes? Please confirm by saying 'yes, delete all'.`,
-        actionResult: null,
-      };
-    }
-    const res = await deleteAllNotes(supabase, session);
-    return { finalMessage: res.error || res.message, actionResult: action };
-  } else if (action === "count_notes") {
-    if (!actionObj.match) {
-      return {
-        finalMessage: "Please specify the note title to count.",
-        actionResult: null,
-      };
-    }
-    const count = await countNotesByTitle(supabase, session, actionObj.match);
     return {
-      finalMessage: `There ${count === 1 ? "is" : "are"} ${count} note${
+      finalMessage: "Sorry cant perform that action right now.",
+      actionResult: null,
+    };
+  } else if (action === "count_notes") {
+    const count = await countNotes(supabase, {
+      match: actionObj.match,
+      status: actionObj.status,
+    });
+
+    let message;
+    if (actionObj.match) {
+      message = `There ${count === 1 ? "is" : "are"} ${count} note${
         count === 1 ? "" : "s"
-      } titled "${actionObj.match}".
-`,
+      } titled "${actionObj.match}".`;
+    } else if (actionObj.status === "completed") {
+      message = `You have ${count} completed note${count === 1 ? "" : "s"}.`;
+    } else if (actionObj.status === "uncompleted") {
+      message = `You have ${count} uncompleted note${count === 1 ? "" : "s"}.`;
+    } else {
+      message = `You have ${count} note${count === 1 ? "" : "s"} in total.`;
+    }
+
+    return {
+      finalMessage: message,
       actionResult: action,
     };
   } else if (action === "ask_note") {
@@ -484,8 +454,8 @@ export async function handleNoteAction(
     // Find the note by title (case-insensitive, trimmed)
     const { data: notes, error } = await supabase
       .from("notes")
-      .select("id, title, content")
-      .eq("user_id", session.user.id);
+      .select("id, title, content");
+
     if (error || !notes) {
       return {
         finalMessage: "Failed to search notes.",
@@ -494,7 +464,7 @@ export async function handleNoteAction(
     }
     const normMatch = actionObj.match.trim().toLowerCase();
     const found = notes.find(
-      (n) => (n.title || "").trim().toLowerCase() === normMatch
+      n => (n.title || "").trim().toLowerCase() === normMatch
     );
     if (!found) {
       return {
@@ -513,7 +483,6 @@ export async function handleNoteAction(
     const { data: deletedNote, error } = await supabase
       .from("notes")
       .select("id, title, content")
-      .eq("user_id", session.user.id)
       .eq("is_deleted", true)
       .order("lastModified", { ascending: false })
       .limit(1)
@@ -546,7 +515,7 @@ export async function handleNoteAction(
       };
     }
     // Search for deleted notes using the existing searchNotes function
-    const search = await searchNotes(supabase, session, actionObj.match, {
+    const search = await searchNotes(supabase, actionObj.match, {
       isDeleted: true,
     });
     if (search.error) {
@@ -590,6 +559,12 @@ export async function handleNoteAction(
       };
       return { finalMessage, actionResult };
     }
+  } else if (action === "list_completed_notes") {
+    const res = await listCompletedNotes(supabase);
+    return {
+      finalMessage: res.error || res.message,
+      actionResult: action,
+    };
   }
 
   return { finalMessage: "Unknown action.", actionResult: null };
