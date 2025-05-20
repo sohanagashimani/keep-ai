@@ -81,36 +81,98 @@ const useChatLogic = handleRefresh => {
 
         let parsed;
         try {
-          parsed = JSON.parse(assistantMessage);
-        } catch {
-          parsed = { content: assistantMessage, action: null };
-        }
-        // Update the last message in real-time
-        setMessages(prev => {
-          const newMessages = [...prev];
-          const lastMessage = newMessages[newMessages.length - 1];
-          if (lastMessage?.role === "assistant") {
-            lastMessage.content = parsed.content;
-          } else {
-            newMessages.push({ role: "assistant", content: parsed.content });
-          }
-          return newMessages;
-        });
+          // Clean the message by removing markdown code blocks and extra whitespace
+          const cleanMessage = assistantMessage
+            .replace(/```json\n?/g, "")
+            .replace(/```\n?/g, "")
+            .trim();
 
-        // If the action is a note-modifying action, refresh notes
-        if (
-          [
-            "create_note",
-            "update_note",
-            "delete_note",
-            "complete_note",
-            "uncomplete_note",
-            "delete_all_notes",
-            "restore_last_deleted_note",
-            "restore_note_from_notes_table",
-          ].includes(parsed.action)
-        ) {
-          handleRefresh?.();
+          // Try to parse as array first
+          const arrayMatch = cleanMessage.match(/\[[\s\S]*\]/);
+          if (arrayMatch) {
+            parsed = {
+              content: cleanMessage,
+              action: JSON.parse(arrayMatch[0]),
+            };
+          } else {
+            // Try to parse as single object
+            const objectMatch = cleanMessage.match(/{[\s\S]*}/);
+            if (objectMatch) {
+              parsed = {
+                content: cleanMessage,
+                action: JSON.parse(objectMatch[0]),
+              };
+            } else {
+              parsed = { content: cleanMessage, action: null };
+            }
+          }
+
+          // Format the message content before updating state
+          let displayContent = parsed.content;
+          try {
+            // If parsed.content is a JSON string, try to parse and extract .content
+            const maybeObj =
+              typeof displayContent === "string"
+                ? JSON.parse(displayContent)
+                : displayContent;
+            if (maybeObj && maybeObj.content) {
+              displayContent = maybeObj.content;
+            }
+          } catch (e) {
+            // Not JSON, just use as is
+          }
+
+          // Clean up and format the content
+          const formattedContent = displayContent
+            .split("\n\n")
+            .map(section => section.trim())
+            .filter(section => section.length > 0)
+            .join("\n\n");
+
+          // Update the last message in real-time
+          setMessages(prev => {
+            const newMessages = [...prev];
+            const lastMessage = newMessages[newMessages.length - 1];
+            if (lastMessage?.role === "assistant") {
+              lastMessage.content = formattedContent;
+            } else {
+              newMessages.push({
+                role: "assistant",
+                content: formattedContent,
+              });
+            }
+            return newMessages;
+          });
+
+          // If the action is a note-modifying action, refresh notes
+          if (parsed.action) {
+            const actions = Array.isArray(parsed.action)
+              ? parsed.action
+              : [parsed.action];
+
+            // Check if any action modifies notes
+            const shouldRefresh = actions.some(action => {
+              // Handle both string actions and object actions
+              const actionType =
+                typeof action === "string" ? action : action.action;
+              return [
+                "create_note",
+                "update_note",
+                "delete_note",
+                "complete_note",
+                "uncomplete_note",
+                "delete_all_notes",
+                "restore_last_deleted_note",
+                "restore_note_from_notes_table",
+              ].includes(actionType);
+            });
+
+            if (shouldRefresh) {
+              handleRefresh?.();
+            }
+          }
+        } catch (e) {
+          parsed = { content: assistantMessage, action: null };
         }
       }
     } catch (error) {

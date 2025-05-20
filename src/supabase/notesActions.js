@@ -185,12 +185,41 @@ async function listCompletedNotes(supabase) {
 
 // --- Main Handler ---
 export async function handleNoteAction(supabase, actionObj, aiMessage) {
+  // Handle array of actions
+  if (Array.isArray(actionObj)) {
+    const results = [];
+    let finalMessage = "";
+    let actionResults = [];
+
+    for (const action of actionObj) {
+      const result = await handleNoteAction(supabase, action, aiMessage);
+      results.push(result);
+
+      // Build combined message
+      if (result.finalMessage) {
+        finalMessage += (finalMessage ? "\n\n" : "") + result.finalMessage;
+      }
+
+      // Collect action results
+      if (result.actionResult) {
+        actionResults.push(result.actionResult);
+      }
+    }
+
+    return {
+      finalMessage,
+      actionResult: actionResults,
+      results: results, // Include all results for debugging
+    };
+  }
+
+  // Handle single action (existing code)
   let actionResult = null;
-  let finalMessage = aiMessage;
+  let finalMessage = "";
 
   // If no action object or invalid JSON, return the original message
   if (!actionObj || !actionObj.action) {
-    return { finalMessage: finalMessage || "", actionResult: null };
+    return { finalMessage: aiMessage || "", actionResult: null };
   }
 
   const { action } = actionObj;
@@ -213,7 +242,6 @@ export async function handleNoteAction(supabase, actionObj, aiMessage) {
       // Call handleNoteAction recursively with the original action, but with id set
       return await handleNoteAction(
         supabase,
-
         { ...actionObj.originalAction, id: note.id },
         aiMessage
       );

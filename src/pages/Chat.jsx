@@ -19,54 +19,61 @@ const Chat = ({ handleRefresh }) => {
     fetchingMessages,
     fetchMessages,
   } = useChatLogic(handleRefresh);
+
   useEffect(() => {
     fetchMessages();
   }, []);
+
   return (
-    <div className="relative h-screen bg-[#1a1a1a]">
-      {/* Header - Fixed at top */}
-      <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4 bg-[#181818] border-b border-[#333]">
+    <div className="flex flex-col h-screen bg-[#1a1a1a]">
+      {/* Header */}
+      <header className="flex items-center justify-between p-4 bg-[#181818] border-b border-[#333]">
         <button
           onClick={() => router.back()}
-          className="text-[#e5e5e5] hover:text-white"
+          className="text-[#e5e5e5] hover:text-white p-2 -ml-2"
         >
           <ArrowLeftOutlined style={{ fontSize: 20 }} />
         </button>
         <span className="font-bold text-lg text-[#e5e5e5]">AI Assistant</span>
         <div className="w-6" /> {/* Spacer for alignment */}
-      </div>
+      </header>
 
-      {/* Messages Area - Scrollable */}
-      <When isTrue={fetchingMessages}>
-        <div className="h-full flex justify-center items-center">
-          <Spin spinning={true} size="large" />
-        </div>
-      </When>
-      <When isTrue={!fetchingMessages}>
-        <div className="h-[calc(100vh-8rem)] mt-16 mb-20 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={`flex ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
-              <ChatMessageBubble message={message} />
+      {/* Main Content */}
+      <main className="flex-1 overflow-hidden">
+        <When isTrue={fetchingMessages}>
+          <div className="h-full flex justify-center items-center">
+            <Spin spinning={true} size="large" />
+          </div>
+        </When>
+        <When isTrue={!fetchingMessages}>
+          {/* Messages Container */}
+          <div className="h-full overflow-y-auto custom-scrollbar">
+            <div className="p-4 space-y-4">
+              {messages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex ${
+                    message.role === "user" ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  <ChatMessageBubble message={message} />
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
             </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
+          </div>
 
-        {/* Input Area - Fixed at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-[#333] bg-[#1a1a1a]">
-          <ChatInputArea
-            input={input}
-            setInput={setInput}
-            handleSend={handleSend}
-            loading={loading}
-          />
-        </div>
-      </When>
+          {/* Input Area */}
+          <div className="border-t border-[#333] bg-[#1a1a1a] p-4">
+            <ChatInputArea
+              input={input}
+              setInput={setInput}
+              handleSend={handleSend}
+              loading={loading}
+            />
+          </div>
+        </When>
+      </main>
     </div>
   );
 };

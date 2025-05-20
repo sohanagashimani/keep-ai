@@ -78,8 +78,25 @@ export async function POST(request) {
     let aiMessage = result.response.candidates[0].content.parts[0].text;
     let actionObj;
     try {
-      const match = aiMessage.match(/{[\s\S]*}/);
-      actionObj = match ? JSON.parse(match[0]) : null;
+      // Clean the message by removing markdown code blocks and extra whitespace
+      const cleanMessage = aiMessage
+        .replace(/```json\n?/g, "")
+        .replace(/```\n?/g, "")
+        .trim();
+
+      // Try to parse as array first
+      const arrayMatch = cleanMessage.match(/\[[\s\S]*\]/);
+      if (arrayMatch) {
+        actionObj = JSON.parse(arrayMatch[0]);
+      } else {
+        // Try to parse as single object
+        const objectMatch = cleanMessage.match(/{[\s\S]*}/);
+        if (objectMatch) {
+          actionObj = JSON.parse(objectMatch[0]);
+        } else {
+          actionObj = null;
+        }
+      }
     } catch (e) {
       actionObj = null;
     }
