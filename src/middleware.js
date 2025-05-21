@@ -2,13 +2,8 @@ import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
 import { NextResponse } from "next/server";
 
 // Configuration for protected routes
-const PROTECTED_ROUTES = [
-  "/chat",
-  "/api",
-  // Add more protected routes here
-];
+const PROTECTED_ROUTES = ["/chat", "/api"];
 
-// Helper function to check if a path is protected
 const isProtectedRoute = path => {
   return PROTECTED_ROUTES.some(route => path.startsWith(route));
 };
