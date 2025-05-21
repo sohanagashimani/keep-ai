@@ -232,6 +232,7 @@ export async function handleNoteAction(supabase, actionObj, aiMessage) {
   ) {
     const userInput = (aiMessage || "").trim();
     const selected = parseInt(userInput, 10);
+    console;
 
     if (
       !isNaN(selected) &&
