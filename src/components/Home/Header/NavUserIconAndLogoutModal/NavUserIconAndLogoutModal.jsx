@@ -51,7 +51,7 @@ const NavUserIconAndLogoutModal = ({
             color="#525252"
             arrow={false}
             placement="topLeft"
-            getPopupContainer={(triggerNode) => triggerNode.parentNode}
+            getPopupContainer={triggerNode => triggerNode.parentNode}
             className="cursor-default"
             trigger={isMobile ? "click" : "hover"}
             autoAdjustOverflow={true}
@@ -66,7 +66,7 @@ const NavUserIconAndLogoutModal = ({
         color="#525252"
         arrow={false}
         placement="bottomLeft"
-        getPopupContainer={(triggerNode) => triggerNode.parentNode}
+        getPopupContainer={triggerNode => triggerNode.parentNode}
         mouseEnterDelay={0.3}
         className="cursor-pointer"
         autoAdjustOverflow={true}
