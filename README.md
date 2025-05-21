@@ -1,59 +1,110 @@
-# Google Keep Clone
-This project is a clone of Google Keep, a note-taking application developed by Google. The aim of this project is to replicate the core features and functionalities of Google Keep, allowing users manage their notes.
+# Keep AI
 
-![image](https://github.com/sohanagashimani/google-keep-clone/assets/73119181/758db438-9e5f-4e99-b35f-e19f67146fb5)
-
+This project is a modern, AI-powered note-taking application inspired by Google Keep. It allows users to manage notes with advanced features and a conversational AI assistant.
 
 ## Features
 
-- Create Notes: Users can create new notes with titles and content, just like in Google Keep.
-- Edit & Delete: Users can edit the content and title of existing notes or delete them as needed.
-- Task Management: Users can mark notes as completed
-- Search Functionality: Users can search for specific notes using keywords or filters to quickly find the desired information.
-- Responsive Design: The application is fully responsive and optimized for both desktop and mobile devices
-- Security: Row Level Security (RLS) enabled for data protection
-- Performance: Infinite scroll implementation for better user experience
+- **Create Notes**: Add new notes with titles and content.
+- **Edit & Delete**: Update or remove notes easily.
+- **Task Management**: Mark notes as completed or uncompleted.
+- **Search Functionality**: Find notes using keywords or filters with fuzzy matching.
+- **Restore Deleted Notes**: Bring back deleted notes, including the most recently deleted one.
+- **Q&A Over Notes**: Ask questions about the content of your notes and get intelligent answers.
+- **Multi-Action Support**: Perform multiple actions in a single AI command (e.g., create, search, count, update, delete, complete, restore).
+- **Interactive Selection**: When multiple notes match, the AI will prompt you to select the correct one by number.
+- **Usage Limits**: Daily message and token limits for fair usage.
+- **Responsive Design**: Optimized for desktop and mobile.
+- **Security**: Row Level Security (RLS) and authentication middleware.
+- **Performance**: Infinite scroll for a smooth experience.
 
 ## AI Assistant
 
-The application features a powerful AI assistant powered by Google's Vertex AI (Gemini 2.0) that can help you manage your notes through natural language commands.
+The application features a powerful AI assistant powered by Google's Vertex AI that can help you manage your notes through natural language commands.
 
-### Key Features
+### Key AI Features
 
-- **Natural Language Processing**: Interact with your notes using everyday language
-- **Real-time Chat Interface**: Instant responses with loading states
-- **Contextual Understanding**: The AI understands your notes' content and context
-- **Protected Routes**: Secure chat functionality with authentication middleware
-- **Usage Limits**: Daily message and token limits to ensure fair usage
+- **Natural Language Processing**: Interact with your notes using everyday language.
+- **Multi-Action Support**: The AI can process and execute multiple actions in a single message (e.g., create, search, count, update, delete, complete, restore).
+- **Fuzzy Matching**: Find notes even if you don't remember the exact title—partial and similar matches are supported.
+- **Interactive Selection**: If multiple notes match your request, the AI will list them and let you pick the correct one by replying with a number.
+- **Note Restoration**: Restore deleted notes by name or bring back the most recently deleted note.
+- **Q&A Over Notes**: Ask questions about the content of a note (e.g., "What does the note titled 'recipes' say about ingredients?") and get intelligent answers.
+- **Contextual Understanding**: The AI understands your notes' content and context, and can guide you to clarify vague requests.
+- **Smart Confirmation**: For destructive actions like deleting all notes, the AI will ask for confirmation.
+- **Usage Limits**: Enforces daily message and token limits to ensure fair usage.
 
+### Advanced Example Commands
 
-### AI Capabilities
+Here are some advanced ways to interact with the AI assistant:
 
-The AI assistant can perform the following actions:
+#### Multi-Action Examples
 
-1. **Note Management**
-   - Create new notes
-   - Update existing notes
-   - Delete notes
-   - Mark notes as complete/incomplete
-   - Restore deleted notes
-   - Delete all notes (with confirmation)
+```plaintext
+# Create a note and then search for related notes
+"Create a note about trekking and then search for all trek-related notes"
 
-2. **Search & Query**
-   - Search notes by content or title
-   - Count notes with specific titles
-   - Ask questions about specific notes
-   - Find and list matching notes
+# Delete and create in one go
+"Delete the note about meeting and create a new one about the follow-up"
 
-3. **Smart Interactions**
-   - Handle multiple matches with interactive selection
-   - Provide contextual responses
-   - Maintain conversation history
-   - Understand natural language commands
+# Count and list
+"Count my completed notes and then list them all"
 
-### Example Commands
+# Create, search, and count
+"Create a note about groceries and then search for any existing grocery lists and count them"
 
-Here are some examples of how to interact with the AI assistant:
+# Complex workflow
+"I need to organize my trekking trip. First, create a note about the Pangarchulla trek, then search for any existing trek notes, count how many trek notes I have, and finally list all completed trek-related tasks."
+```
+
+#### Fuzzy Matching & Interactive Selection
+
+```plaintext
+# Fuzzy search for notes
+"Update the note which says get milk tom to get milk day after tom"
+
+# If multiple notes match, the AI will prompt:
+"Multiple notes match your request:
+1. Get milk tomorrow
+2. Get milk today
+Please reply with the number of the note you want to update."
+
+# You reply:
+"2"
+# The AI updates the second note.
+```
+
+#### Note Restoration
+
+```plaintext
+# Restore by name
+"Restore the note called 'project plan'"
+
+# Restore the most recently deleted note
+"Restore the previously deleted note"
+```
+
+#### Q&A Over Notes
+
+```plaintext
+# Ask about note content
+"What does the daily mission idea note say about how much time to spend?"
+
+# Ask for a summary
+"Summarize the note called 'project plan'"
+
+# Ask about a specific detail
+"What deadline is mentioned in the note 'launch'?"
+```
+
+#### Smart Confirmation
+
+```plaintext
+# Delete all notes (requires confirmation)
+"Delete all notes"
+# AI: "Are you sure? Please reply 'yes, delete all' to confirm."
+```
+
+#### More Examples
 
 ```plaintext
 # Creating Notes
@@ -76,7 +127,6 @@ Here are some examples of how to interact with the AI assistant:
 # Deleting & Restoring
 "Delete the shopping list"
 "Restore my deleted meeting notes"
-"Delete all notes" (requires confirmation)
 
 # Note Queries
 "What does the note titled 'meeting notes' say about next steps?"
@@ -84,33 +134,31 @@ Here are some examples of how to interact with the AI assistant:
 "What deadline is mentioned in the note 'launch'?"
 ```
 
-Note: The AI processes one action at a time. For complex operations that require multiple steps (like finding and then modifying multiple notes), you'll need to perform each step separately.
-
 ### Usage Limits
 
-- Daily message limit: 50 messages
-- Daily token limit: 10,000 tokens
-
+- **Daily message limit:** 50 messages
+- **Daily token limit:** 10,000 tokens
 
 ## Tech Stack
 
 - Next.js 14
 - TailwindCSS
 - Supabase
-- Google Vertex AI (Gemini 2.0)
+- Google Vertex AI
+- Fuse.js (for fuzzy searching)
 
 ## Run Locally
 
 Clone the project
 
 ```bash
-git clone https://github.com/sohanagashimani/google-keep-clone.git
+git clone https://github.com/sohanagashimani/keep-ai.git
 ```
 
 Go to the project directory
 
 ```bash
-  cd google-keep-clone
+  cd keep-ai
 ```
 
 Install dependencies
@@ -121,6 +169,7 @@ Install dependencies
 
 Set up environment variables:
 Create a `.env.local` file in the root directory and add:
+
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -137,12 +186,4 @@ Start the server
 
 ## Authentication
 
-The application uses Supabase for authentication. Protected routes (like the chat feature) are secured using middleware to ensure only authenticated users can access them.
-
-## Mobile Support
-
-The application provides a seamless experience across all devices:
-- Desktop: Chat interface available in a drawer component
-- Mobile: Dedicated chat page with optimized layout
-- Responsive design adapts to different screen sizes
-
+The application uses Supabase for authentication. Protected routes are secured using middleware to ensure only authenticated users can access them.
