@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button } from "antd";
+import { Button, Tooltip } from "antd";
 import NavBarSpinner from "./NavBarSpinner/NavBarSpinner";
 import FilterNotes from "../FilterNotes/FilterNotes";
 import NavBrand from "./NavBrand/NavBrand";
@@ -75,16 +75,18 @@ const Header = ({
             }}
           />
         </div>
-        <Button
-          type="text"
-          icon={<FiMessageCircle size={22} className="text-gray-200" />}
-          onClick={handleChatClick}
-          className="flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-full px-0 md:px-3 py-1 pl-2 sm:py-1 font-medium text-gray-200 transition-all duration-200 min-w-[36px] min-h-[36px] justify-center"
-        >
-          {/* <span className="hidden md:flex text-gray-200 text-sm sm:text-base">
+        <Tooltip title="AI Assistant" color="#525252" arrow={false}>
+          <Button
+            type="text"
+            icon={<FiMessageCircle size={22} className="text-gray-200" />}
+            onClick={handleChatClick}
+            className="flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-full px-0 md:px-3 py-1 pl-2 sm:py-1 font-medium text-gray-200 transition-all duration-200 min-w-[36px] min-h-[36px] justify-center"
+          >
+            {/* <span className="hidden md:flex text-gray-200 text-sm sm:text-base">
             AI Assistant
           </span> */}
-        </Button>
+          </Button>
+        </Tooltip>
         <NavBarSpinner loading={navBarLoader} handleRefresh={handleRefresh} />
         <NavUserIconAndLogoutModal
           {...{
