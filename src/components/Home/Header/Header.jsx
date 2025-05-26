@@ -5,7 +5,6 @@ import FilterNotes from "../FilterNotes/FilterNotes";
 import NavBrand from "./NavBrand/NavBrand";
 import NavSearchBar from "./NavSearchBar/NavSearchBar";
 import NavUserIconAndLogoutModal from "./NavUserIconAndLogoutModal/NavUserIconAndLogoutModal";
-import ChatDrawer from "../../Chat/ChatDrawer";
 import { FiMessageCircle } from "react-icons/fi";
 import { useMediaQuery } from "react-responsive";
 import { useRouter } from "next/navigation";
@@ -19,9 +18,10 @@ const Header = ({
   handleLogout,
   handleRefresh,
   user,
+  chatDrawerVisible,
+  setChatDrawerVisible,
 }) => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [chatDrawerVisible, setChatDrawerVisible] = useState(false);
   const isMobile = useMediaQuery({ maxWidth: 767 });
   const router = useRouter();
 
@@ -46,60 +46,57 @@ const Header = ({
     if (isMobile) {
       router.push("/chat");
     } else {
-      setChatDrawerVisible(true);
+      if (chatDrawerVisible) {
+        setChatDrawerVisible(false);
+      } else {
+        setChatDrawerVisible(true);
+      }
     }
   };
 
   return (
-    <>
-      <div className="flex justify-between items-center w-full border-b border-neutral-800 shadow-sm  px-4 py-2 sticky top-0 z-20 gap-2">
-        <NavBrand />
-        <NavSearchBar
-          {...{
-            searchTerm,
-            setSearchTerm,
-            isSearchFocused,
-            handleSearchFocus,
-            handleSearchBlur,
-          }}
-        />
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex">
-            <FilterNotes
-              {...{
-                setSortBy,
-                sortBy,
-              }}
-            />
-          </div>
-          <Button
-            type="text"
-            icon={<FiMessageCircle size={22} className="text-gray-200" />}
-            onClick={handleChatClick}
-            className="flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-full px-0 md:px-3 py-1 pl-2 sm:py-1 font-medium text-gray-200 transition-all duration-200 min-w-[36px] min-h-[36px] justify-center"
-          >
-            {/* <span className="hidden md:flex text-gray-200 text-sm sm:text-base">
-              AI Assistant
-            </span> */}
-          </Button>
-          <NavBarSpinner loading={navBarLoader} handleRefresh={handleRefresh} />
-          <NavUserIconAndLogoutModal
+    <div className="flex justify-between items-center w-full border-b border-neutral-800 shadow-sm  md:px-4 py-2 sticky top-0 z-20 gap-2">
+      <NavBrand />
+      <NavSearchBar
+        {...{
+          searchTerm,
+          setSearchTerm,
+          isSearchFocused,
+          handleSearchFocus,
+          handleSearchBlur,
+        }}
+      />
+      <div className="flex items-center gap-4">
+        <div className="hidden md:flex">
+          <FilterNotes
             {...{
-              user,
-              logoutModalVisible,
-              handleLogout,
-              hideLogoutModal,
-              showLogoutModal,
+              setSortBy,
+              sortBy,
             }}
           />
         </div>
+        <Button
+          type="text"
+          icon={<FiMessageCircle size={22} className="text-gray-200" />}
+          onClick={handleChatClick}
+          className="flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-full px-0 md:px-3 py-1 pl-2 sm:py-1 font-medium text-gray-200 transition-all duration-200 min-w-[36px] min-h-[36px] justify-center"
+        >
+          {/* <span className="hidden md:flex text-gray-200 text-sm sm:text-base">
+            AI Assistant
+          </span> */}
+        </Button>
+        <NavBarSpinner loading={navBarLoader} handleRefresh={handleRefresh} />
+        <NavUserIconAndLogoutModal
+          {...{
+            user,
+            logoutModalVisible,
+            handleLogout,
+            hideLogoutModal,
+            showLogoutModal,
+          }}
+        />
       </div>
-      <ChatDrawer
-        visible={chatDrawerVisible}
-        onClose={() => setChatDrawerVisible(false)}
-        handleRefresh={handleRefresh}
-      />
-    </>
+    </div>
   );
 };
 

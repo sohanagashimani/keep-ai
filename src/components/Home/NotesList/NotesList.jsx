@@ -27,12 +27,13 @@ const NotesList = ({
   setHasMore,
   hasMore,
   refreshNotes,
+  chatDrawerVisible,
 }) => {
   const dispatch = useDispatch();
   const fetchMore = async () => {
     await dispatch(
       handleFetchNotes(setNotes, setNavBarLoader, length(sortedNotes), 10)
-    ).then((res) => {
+    ).then(res => {
       setHasMore(res);
     });
   };
@@ -55,13 +56,17 @@ const NotesList = ({
         <p className="flex justify-center py-2">Yay! You have seen it all</p>
       }
     >
-      <div className="flex justify-center mx-3 md:mx-28">
+      <div
+        className={`flex justify-center mx-3  ${
+          !chatDrawerVisible ? "md:mx-20" : ""
+        }`}
+      >
         <Masonry
           breakpointCols={breakpointColumns}
           className="my-masonry-grid"
           columnClassName="my-masonry-grid_column"
         >
-          {sortedNotes?.map((note) => (
+          {sortedNotes?.map(note => (
             <NoteItem
               key={note.id}
               note={note}

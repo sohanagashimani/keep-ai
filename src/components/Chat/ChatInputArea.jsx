@@ -11,7 +11,7 @@ const ChatInputArea = ({ input, setInput, handleSend, loading }) => {
   };
 
   return (
-    <div className="p-4 border-t border-gray-700 bg-neutral-900">
+    <div className="p-4 border-t border-gray-700 md:bg-neutral-800 bg-neutral-900 md:rounded-b-2xl">
       <div className="flex space-x-2 items-end">
         <Input.TextArea
           value={input}

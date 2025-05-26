@@ -28,6 +28,8 @@ import {
 import NotesList from "./NotesList/NotesList";
 import Header from "./Header/Header";
 import { supabase } from "@/utils/supabase";
+import ChatDrawer from "../Chat/ChatDrawer";
+import "./hideScrollbar.css";
 
 const Home = ({ user, setSession, setUser }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -35,7 +37,7 @@ const Home = ({ user, setSession, setUser }) => {
   const [hasMore, setHasMore] = useState(true);
   const [sortBy, setSortBy] = useState("");
   const { notes, selectedNote, navBarLoader, notesLoader } = useSelector(
-    (state) => state.notes
+    state => state.notes
   );
   const dispatch = useDispatch();
   const {
@@ -50,12 +52,13 @@ const Home = ({ user, setSession, setUser }) => {
       content: selectedNote?.content || "",
     },
   });
+  const [chatDrawerVisible, setChatDrawerVisible] = useState(false);
   useEffect(() => {
     dispatch(handleFetchNotes(refreshNotes, setNotesLoader, 0, 100));
   }, [dispatch]);
   useEffect(() => {
     if (!isEmpty(errors)) {
-      Object.values(errors).forEach((error) => {
+      Object.values(errors).forEach(error => {
         toast.error(error.message, toastConfig);
       });
     }
@@ -65,7 +68,7 @@ const Home = ({ user, setSession, setUser }) => {
     dispatch(handleFetchNotes(refreshNotes, setNavBarLoader, 0, 100));
   };
 
-  const updateNote = (values) => {
+  const updateNote = values => {
     const updatedNote = {
       ...values,
       completed: selectedNote?.completed,
@@ -75,7 +78,7 @@ const Home = ({ user, setSession, setUser }) => {
     dispatch(handleUpdateNote(updatedNote, selectedNote));
   };
 
-  const addNewNote = (note) => {
+  const addNewNote = note => {
     const newNote = {
       ...note,
       lastModified: new Date(),
@@ -95,33 +98,34 @@ const Home = ({ user, setSession, setUser }) => {
       throw new Error(error);
     }
   };
-  const filteredNotes = notes?.filter((note) =>
+  const filteredNotes = notes?.filter(note =>
     note?.title?.toLowerCase().includes(searchTerm.toLowerCase())
   );
   const sortedNotes = [...filteredNotes].sort((a, b) => {
     if (sortBy === "title") {
       return a.title.localeCompare(b.title);
-    } else if (
-      sortBy === "completed" &&
-      filteredNotes.some((note) => note.completed)
-    ) {
+    } else if (sortBy === "completed") {
       return a.completed === b.completed ? 0 : a.completed ? -1 : 1;
+    } else if (sortBy === "created") {
+      return new Date(b.created_at) - new Date(a.created_at);
+    } else if (sortBy === "modified") {
+      return new Date(b.lastModified) - new Date(a.lastModified);
     }
-    return b.created_at.localeCompare(a.created_at);
+    return new Date(b.created_at) - new Date(a.created_at); // Default sort by created date
   });
 
   const toggleNoteModal = () => {
-    setIsModalOpen((prev) => !prev);
+    setIsModalOpen(prev => !prev);
   };
 
-  const handleNoteSelection = (note) => {
+  const handleNoteSelection = note => {
     dispatch(selectNote(note));
   };
 
-  const deleteNote = (note) => {
+  const deleteNote = note => {
     dispatch(handleDeleteNote(note));
   };
-  const completeNote = (note) => {
+  const completeNote = note => {
     const updatedNote = {
       ...note,
       completed: !note.completed,
@@ -131,73 +135,97 @@ const Home = ({ user, setSession, setUser }) => {
   };
 
   return (
-    <div
-      className=" pt-2 bg-neutral-800 flex flex-col gap-2 w-full"
-      style={{ color: "#e8eaed" }}
-    >
-      <When isTrue={notesLoader}>
-        <div className="h-screen flex flex-row items-center justify-center">
+    <div className="flex w-full h-screen overflow-x-hidden gap-x-6 md:bg-neutral-900 items-start md:p-2">
+      <div
+        id="main-content"
+        className="flex-grow min-w-0 transition-all duration-300 ease-in-out pt-2 bg-neutral-800 flex flex-col gap-2  h-full md:rounded-2xl shadow-lg"
+        style={{ color: "#e8eaed" }}
+      >
+        <When isTrue={notesLoader}>
+          <div className="h-full flex flex-row items-center justify-center">
             <Spinner spinning={notesLoader} />
-        </div>
-      </When>
-      <When isTrue={!notesLoader}>
-        <div className="mx-3">
-          <Header
-            {...{
-              setSearchTerm,
-              searchTerm,
-              setSortBy,
-              sortBy,
-              handleLogout,
-              navBarLoader,
-              handleRefresh: onRefreshClick,
-              user,
-            }}
-          />
-        </div>
-        <div className="border-b border-neutral-500"></div>
-        <div className="md:hidden">
-          <FilterNotes
-            {...{
-              setSortBy,
-              sortBy,
-            }}
-          />
-        </div>
-        <NewNote onSubmit={addNewNote} />
-        <When isTrue={isEmpty(sortedNotes)}>
-          <div className="flex justify-center items-center h-full text-white">
-            <Empty
-              image={<SlTrash size={30} />}
-              description={
-                <p className="text-gray-200 -mt-6">No notes to display</p>
-              }
-            />
           </div>
         </When>
-        <When isTrue={!isEmpty(sortedNotes)}>
-          <NotesList
-            {...{
-              sortedNotes,
-              handleNoteSelection,
-              toggleNoteModal,
-              reset,
-              deleteNote,
-              completeNote,
-              updateNote,
-              selectedNote,
-              isModalOpen,
-              control,
-              handleSubmit,
-              isDirty,
-              setNavBarLoader,
-              setHasMore,
-              hasMore,
-              refreshNotes: onRefreshClick,
-            }}
-          />
+        <When isTrue={!notesLoader}>
+          <div className="mx-3">
+            <Header
+              {...{
+                setSearchTerm,
+                searchTerm,
+                setSortBy,
+                sortBy,
+                handleLogout,
+                navBarLoader,
+                handleRefresh: onRefreshClick,
+                user,
+                chatDrawerVisible,
+                setChatDrawerVisible,
+              }}
+            />
+          </div>
+          <div className="border-b border-neutral-500"></div>
+          <div className="md:hidden">
+            <FilterNotes
+              {...{
+                setSortBy,
+                sortBy,
+              }}
+            />
+          </div>
+          <div className="flex-1 overflow-y-auto md:p-4 space-y-4  bg-neutral-800 hide-scrollbar md:rounded-b-2xl">
+            <NewNote onSubmit={addNewNote} />
+            <When isTrue={isEmpty(sortedNotes)}>
+              <div className="flex justify-center items-center h-full text-white">
+                <Empty
+                  image={<SlTrash size={30} />}
+                  description={
+                    <p className="text-gray-200 -mt-6">No notes to display</p>
+                  }
+                />
+              </div>
+            </When>
+
+            <When isTrue={!isEmpty(sortedNotes)}>
+              <NotesList
+                {...{
+                  sortedNotes,
+                  handleNoteSelection,
+                  toggleNoteModal,
+                  reset,
+                  deleteNote,
+                  completeNote,
+                  updateNote,
+                  selectedNote,
+                  isModalOpen,
+                  control,
+                  handleSubmit,
+                  isDirty,
+                  setNavBarLoader,
+                  setHasMore,
+                  hasMore,
+                  refreshNotes: onRefreshClick,
+                  chatDrawerVisible,
+                }}
+              />
+            </When>
+          </div>
         </When>
-      </When>
+      </div>
+      {chatDrawerVisible && (
+        <div
+          className="w-[700px] h-full flex-shrink-0 rounded-2xl shadow-lg bg-[#1a1a1a] animate-slide-in"
+          style={{
+            animation: "slideIn 3s ease-out",
+          }}
+        >
+          <ChatDrawer
+            visible={chatDrawerVisible}
+            onClose={() => setChatDrawerVisible(false)}
+            handleRefresh={onRefreshClick}
+            asFlex
+          />
+        </div>
+      )}
     </div>
   );
 };
