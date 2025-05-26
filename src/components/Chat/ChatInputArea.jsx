@@ -11,7 +11,7 @@ const ChatInputArea = ({ input, setInput, handleSend, loading }) => {
   };
 
   return (
-    <div className="p-4 border-t border-gray-700 md:bg-neutral-800 bg-neutral-900 md:rounded-b-2xl">
+    <div className="p-4 md:bg-neutral-800 bg-neutral-900 rounded-2xl md:rounded-b-2xl">
       <div className="flex space-x-2 items-end">
         <Input.TextArea
           value={input}
@@ -19,7 +19,7 @@ const ChatInputArea = ({ input, setInput, handleSend, loading }) => {
           onPressEnter={handleKeyPress}
           placeholder="Type your message..."
           autoSize={{ minRows: 2, maxRows: 4 }}
-          className="flex-1 bg-neutral-800 text-gray-200 border-none focus:shadow-none rounded-xl text-base placeholder-gray-400"
+          className="flex-1 bg-neutral-700 text-gray-200 border-none focus:shadow-none rounded-xl text-base placeholder-gray-400"
           style={{ resize: "none", padding: "10px" }}
         />
         <Button

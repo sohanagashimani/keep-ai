@@ -64,7 +64,7 @@ const Chat = ({ handleRefresh }) => {
           </div>
 
           {/* Input Area */}
-          <div className="border-t border-[#333] bg-[#1a1a1a] p-4">
+          <div className="border-t border-[#333] bg-[#1a1a1a]">
             <ChatInputArea
               input={input}
               setInput={setInput}
