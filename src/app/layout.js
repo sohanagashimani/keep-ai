@@ -3,8 +3,8 @@ import { Providers } from "@/store/Provider";
 import ClientToastContainer from "@/components/ClientToastContainer";
 
 export const metadata = {
-  title: "Google Keep",
-  description: "A notes app",
+  title: "Keep AI",
+  description: "A modern, AI-powered notes app",
 };
 
 export default function RootLayout({ children }) {
