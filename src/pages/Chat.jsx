@@ -25,7 +25,7 @@ const Chat = ({ handleRefresh }) => {
   }, []);
 
   return (
-    <div className="flex flex-col h-screen bg-[#1a1a1a]">
+    <div className="flex flex-col h-[100vh] bg-[#1a1a1a]">
       {/* Header */}
       <header className="flex items-center justify-between p-4 bg-[#181818] border-b border-[#333]">
         <button
